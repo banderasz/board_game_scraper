@@ -1,5 +1,6 @@
 import unittest
 
+import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
@@ -8,6 +9,7 @@ from Model.board_game import BoardGame, BoardGameData
 from WebScraping.szellem_lovas_scraper import SzellemLovasScraper
 
 
+@pytest.mark.skip(reason="only for manual testing")
 class SzellemLovasTest(unittest.TestCase):
     def setUp(self):
         options = Options()
