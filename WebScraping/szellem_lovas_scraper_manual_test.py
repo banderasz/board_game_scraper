@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 
+from Model.board_game import BoardGame, BoardGameData
 from WebScraping.szellem_lovas_scraper import SzellemLovasScraper
 
 
@@ -26,6 +27,14 @@ class SzellemLovasTest(unittest.TestCase):
         self.szellemLovasScraper.get_base_url()
         self.szellemLovasScraper.search_title(title)
         self.assertGreaterEqual(len(self.driver.find_elements(By.XPATH, search_result_xpath)), 1)
+
+    def test_board_game_data_can_be_collected(self):
+        board_game = BoardGame("Spirit island", ["Spirit Island (angol) (Szellemek szigete)"])
+        expected_price = "39808,- Ft"
+
+        self.szellemLovasScraper.get_base_url()
+        board_game_data = self.szellemLovasScraper.get_board_game_data(board_game)
+        self.assertEqual(board_game_data, BoardGameData(board_game, expected_price))
 
     def tearDown(self):
         self.driver.close()
