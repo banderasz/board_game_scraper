@@ -18,6 +18,11 @@ class SzellemLovasScraper:
 
     PRICE_LOCATOR_OF_BOARD_GAME = './/div[contains(@class, "price")]'
 
+    NEXT_PAGE_LOCATOR = '//div[contains(@class, "pager")]' \
+                        '//*[contains(@class, "next") and not (contains(@class, "next hidden"))]'
+
+    NEXT_PAGE_DISABLED_LOCATOR = '//div[contains(@class, "pager")]'
+
     def __init__(self, driver: WebDriver):
         self.driver = driver
 
@@ -37,6 +42,19 @@ class SzellemLovasScraper:
         return BoardGameData(board_game, price)
 
     def __find_correct_board_game(self, board_game: BoardGame) -> WebElement:
+        found_game = self.__find_correct_board_game_in_page(board_game)
+        while not found_game and self.__try_go_to_next_page():
+            found_game = self.__find_correct_board_game_in_page(board_game)
+        return found_game
+
+    def __try_go_to_next_page(self) -> bool:
+        next_pages = self.driver.find_elements(By.XPATH, SzellemLovasScraper.NEXT_PAGE_LOCATOR)
+        if len(next_pages) == 1:
+            next_pages[0].click()
+            return True
+        return False
+
+    def __find_correct_board_game_in_page(self, board_game: BoardGame) -> WebElement:
         for synonym in [board_game.name, *board_game.synonyms]:
             elements = self.driver.find_elements(By.XPATH,
                                                  SzellemLovasScraper.BOARD_GAME_LOCATOR_BY_TITLE.format(title=synonym))

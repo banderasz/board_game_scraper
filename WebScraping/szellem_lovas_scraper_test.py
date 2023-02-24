@@ -28,6 +28,25 @@ class SzellemLovasTest(unittest.TestCase):
 
         self.assertEqual(self.szellemLovasScraper.get_board_game_data(board_game), BoardGameData(board_game, price))
 
+    def test_board_game_data_can_be_found_on_later_page(self):
+        board_game = BoardGame("Spirit island", ["Spirit Island (angol) (Szellemek szigete)"])
+        price = "39808,- Ft"
+
+        element = Mock()
+        element.find_element.return_value.text = price
+
+        board_games_in_pages = [[], [element]]
+
+        def find_element_mock_method(*args):
+            if SzellemLovasScraper.NEXT_PAGE_LOCATOR in args[1]:
+                return [Mock()]
+
+            return board_games_in_pages.pop()
+
+        self.driver.find_elements.side_effect = find_element_mock_method
+
+        self.assertEqual(self.szellemLovasScraper.get_board_game_data(board_game), BoardGameData(board_game, price))
+
 
 if __name__ == '__main__':
     unittest.main()
