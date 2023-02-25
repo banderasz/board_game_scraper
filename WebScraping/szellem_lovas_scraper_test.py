@@ -1,5 +1,5 @@
 import unittest
-from typing import List
+from typing import List, Dict
 from unittest.mock import Mock
 
 from Model.board_game import BoardGame, BoardGameResult
@@ -35,7 +35,7 @@ class SzellemLovasTest(unittest.TestCase):
         self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_title, SzellemLovasTest.price)],
                          self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
 
-    def test_boardgames_on_all_pages_are_reported(self):
+    def test_board_games_on_all_pages_are_reported(self):
         prices = ["1", "2", "3", "4"]
         titles = ["a", "b", "c", "d"]
 
@@ -49,6 +49,49 @@ class SzellemLovasTest(unittest.TestCase):
         expected_results = [BoardGameResult(title, price) for title, price in zip(titles, prices)]
         self.assertCountEqual(expected_results,
                               self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
+
+    def test_multiple_results_of_synonyms_are_reported(self):
+        synonym_1 = "a"
+        synonym_2 = "b"
+        board_game = BoardGame("title", [synonym_1, synonym_2])
+
+        titles = ["a", "aa", "b", "bb"]
+        prices = ["1", "2", "3", "4"]
+
+        add_side_effect_to_driver(self.driver, {synonym_1: [[BoardGameResult(titles[0], prices[0]),
+                                                             BoardGameResult(titles[1], prices[1])]],
+                                                synonym_2: [[BoardGameResult(titles[2], prices[2])],
+                                                            [BoardGameResult(titles[3], prices[3])]]})
+
+        expected_results = [BoardGameResult(title, price) for title, price in zip(titles, prices)]
+        self.assertCountEqual(expected_results,
+                              self.szellemLovasScraper.get_board_game_results(board_game))
+
+    def test_synonym_with_single_result_is_reported(self):
+        synonym_1 = "a"
+        synonym_2 = "b"
+        board_game = BoardGame("title", [synonym_1, synonym_2])
+
+        titles = ["a", "aa", "b"]
+        prices = ["1", "2", "3"]
+
+        add_side_effect_to_driver(self.driver, {synonym_1: [[BoardGameResult(titles[0], prices[0]),
+                                                             BoardGameResult(titles[1], prices[1])]],
+                                                synonym_2: [[BoardGameResult(titles[2], prices[2])]]})
+
+        self.assertCountEqual([BoardGameResult(titles[2], prices[2])],
+                              self.szellemLovasScraper.get_board_game_results(board_game))
+
+
+def add_side_effect_to_driver(driver: Mock, board_games_in_pages_by_synonym: Dict[str, List[List[BoardGameResult]]]):
+    search_bar_mock = Mock()
+
+    def search_bar_send_keys_mock_method(*args):
+        search_term = args[0][:-1]
+        add_find_elements_side_effect_to_driver(driver, board_games_in_pages_by_synonym[search_term])
+
+    driver.find_element.return_value = search_bar_mock
+    search_bar_mock.send_keys.side_effect = search_bar_send_keys_mock_method
 
 
 def add_find_elements_side_effect_to_driver(driver: Mock, board_games_in_pages: List[List[BoardGameResult]]):

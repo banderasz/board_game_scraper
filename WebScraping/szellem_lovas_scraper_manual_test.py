@@ -38,10 +38,10 @@ class SzellemLovasTest(unittest.TestCase):
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price)], board_game_data)
 
-    def test_board_game_data_can_be_collected_with_pagination(self):
-        board_game = BoardGame("a", ["3000 bandita"])
-        expected_title = "3000 bandita (3000 Scoundrels)"
-        expected_price = "17090,- Ft"
+    def test_board_game_data_can_be_collected_with_pagination_and_synonym(self):
+        board_game = BoardGame("Ticket to Ride", ["Ticket to Ride", "Ticket to Ride: San Francisco (angol)"])
+        expected_title = "Ticket to Ride: San Francisco (angol)"
+        expected_price = "9844,- Ft"
 
         self.szellemLovasScraper.get_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
