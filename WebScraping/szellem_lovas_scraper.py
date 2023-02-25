@@ -21,6 +21,8 @@ class SzellemLovasScraper:
 
     PRICE_LOCATOR_OF_BOARD_GAME = './/div[contains(@class, "price")]'
 
+    TITLE_LOCATOR_OF_BOARD_GAME = './/div[contains(@class, "product-name")]'
+
     NEXT_PAGE_LOCATOR = '//div[contains(@class, "pager")]' \
                         '//*[contains(@class, "next") and not (contains(@class, "next hidden"))]'
 
@@ -68,9 +70,10 @@ class SzellemLovasScraper:
     def __find_board_games_by_title(self, title: str) -> List[BoardGameResult]:
         board_games = self.driver.find_elements(By.XPATH,
                                                 SzellemLovasScraper.BOARD_GAME_LOCATOR_BY_TITLE.format(title=title))
-        return [self.__get_results_of_board_game(board_game, title) for board_game in board_games]
+        return [self.__get_results_of_board_game(board_game) for board_game in board_games]
 
     @staticmethod
-    def __get_results_of_board_game(board_game: WebElement, title: str) -> BoardGameResult:
+    def __get_results_of_board_game(board_game: WebElement) -> BoardGameResult:
         price = board_game.find_element(By.XPATH, SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME).text
+        title = board_game.find_element(By.XPATH, SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME).text
         return BoardGameResult(title, price)

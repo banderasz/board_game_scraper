@@ -26,27 +26,27 @@ class SzellemLovasTest(unittest.TestCase):
     def test_board_game_data_can_be_found(self):
         add_find_elements_side_effect_to_driver(self.driver, [[SzellemLovasTest.board_game_result]])
 
-        self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_synonym, SzellemLovasTest.price)],
+        self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_title, SzellemLovasTest.price)],
                          self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
 
     def test_board_game_data_can_be_found_on_later_page(self):
         add_find_elements_side_effect_to_driver(self.driver, [[], [self.board_game_result]])
 
-        self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_synonym, SzellemLovasTest.price)],
+        self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_title, SzellemLovasTest.price)],
                          self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
 
     def test_boardgames_on_all_pages_are_reported(self):
         prices = ["1", "2", "3", "4"]
+        titles = ["a", "b", "c", "d"]
 
         add_find_elements_side_effect_to_driver(self.driver, [[],
-                                                              [BoardGameResult("", prices[0])],
+                                                              [BoardGameResult(titles[0], prices[0])],
                                                               [],
-                                                              [BoardGameResult("", prices[1])],
-                                                              [BoardGameResult("", prices[2]),
-                                                               BoardGameResult("", prices[3])]])
+                                                              [BoardGameResult(titles[1], prices[1])],
+                                                              [BoardGameResult(titles[2], prices[2]),
+                                                               BoardGameResult(titles[3], prices[3])]])
 
-        expected_results = [BoardGameResult(SzellemLovasTest.board_game_synonym, price) for price in prices]
-
+        expected_results = [BoardGameResult(title, price) for title, price in zip(titles, prices)]
         self.assertCountEqual(expected_results,
                               self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
 
@@ -62,9 +62,18 @@ def add_find_elements_side_effect_to_driver(driver: Mock, board_games_in_pages: 
 
 
 def build_board_game_mock(board_game: BoardGameResult):
-    element = Mock()
-    element.find_element.return_value.text = board_game.price
-    return element
+    board_game_box = Mock()
+
+    def find_element_mock_method(*args):
+        attribute_element = Mock()
+        if SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME in args[1]:
+            attribute_element.text = board_game.price
+        elif SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME in args[1]:
+            attribute_element.text = board_game.title
+        return attribute_element
+
+    board_game_box.find_element.side_effect = find_element_mock_method
+    return board_game_box
 
 
 if __name__ == '__main__':
