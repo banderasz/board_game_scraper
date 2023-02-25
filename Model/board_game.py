@@ -2,24 +2,24 @@ from typing import Collection
 
 
 class BoardGame:
-    def __init__(self, name: str, synonyms: Collection[str] = tuple()):
-        self.name = name
+    def __init__(self, title: str, synonyms: Collection[str] = tuple()):
+        self.title = title
         self.synonyms = synonyms
 
     def __eq__(self, other: "BoardGame"):
-        return self.name == other.name and set(self.synonyms) == set(other.synonyms)
+        return isinstance(other, BoardGame) and self.title == other.title and set(self.synonyms) == set(other.synonyms)
 
     def __repr__(self):
-        return f"BoardGame(name='{self.name}', synonyms={self.synonyms})"
+        return f"BoardGame(title='{self.title}', synonyms={self.synonyms})"
 
 
-class BoardGameData:
-    def __init__(self, board_game: BoardGame, price: str = ""):
-        self.board_game = board_game
+class BoardGameResult:
+    def __init__(self, title: str, price: str = ""):
+        self.title = title
         self.price = price
 
-    def __eq__(self, other: "BoardGameData"):
-        return self.board_game == other.board_game and self.price == other.price
+    def __eq__(self, other: "BoardGameResult"):
+        return isinstance(other, BoardGameResult) and self.title == other.title and self.price == other.price
 
     def __repr__(self):
-        return f"BoardGameData(board_game={repr(self.board_game)}, price='{self.price}')"
+        return f"BoardGameData(title='{self.title}', price='{self.price}')"

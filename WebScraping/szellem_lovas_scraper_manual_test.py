@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 
-from Model.board_game import BoardGame, BoardGameData
+from Model.board_game import BoardGame, BoardGameResult
 from WebScraping.szellem_lovas_scraper import SzellemLovasScraper
 
 
@@ -35,16 +35,25 @@ class SzellemLovasTest(unittest.TestCase):
         expected_price = "39808,- Ft"
 
         self.szellemLovasScraper.get_base_url()
-        board_game_data = self.szellemLovasScraper.get_board_game_data(board_game)
-        self.assertEqual(board_game_data, BoardGameData(board_game, expected_price))
+        board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
+        self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price)], board_game_data)
 
     def test_board_game_data_can_be_collected_with_pagination(self):
         board_game = BoardGame("a", ["3000 bandita"])
         expected_price = "17090,- Ft"
 
         self.szellemLovasScraper.get_base_url()
-        board_game_data = self.szellemLovasScraper.get_board_game_data(board_game)
-        self.assertEqual(board_game_data, BoardGameData(board_game, expected_price))
+        board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
+        self.assertEqual(board_game_data, [BoardGameResult(board_game.synonyms[0], expected_price)])
+
+    def test_multiple_board_game_results_can_be_found(self):
+        board_game = BoardGame("Szellemek szigete", ["Szellemek szigete"])
+        expected_prices = ["39808,- Ft", "18490,- Ft"]
+
+        self.szellemLovasScraper.get_base_url()
+        board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
+        self.assertEqual(board_game_data, [BoardGameResult(board_game.synonyms[0], expected_prices[0]),
+                                           BoardGameResult(board_game.synonyms[0], expected_prices[1])])
 
     def tearDown(self):
         self.driver.close()
