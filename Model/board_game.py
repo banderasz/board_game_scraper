@@ -14,12 +14,16 @@ class BoardGame:
 
 
 class BoardGameResult:
-    def __init__(self, title: str, price: str = ""):
+    def __init__(self, title: str, price: str = "", url: str = ""):
         self.title = title
         self.price = price
+        self.url = url
 
     def __eq__(self, other: "BoardGameResult"):
-        return isinstance(other, BoardGameResult) and self.title == other.title and self.price == other.price
+        return isinstance(other, BoardGameResult) and \
+               self.title == other.title and \
+               self.price == other.price and \
+               self.url == other.url
 
     def __repr__(self):
-        return f"BoardGameData(title='{self.title}', price='{self.price}')"
+        return f"BoardGameData(title='{self.title}', price='{self.price}', url='{self.url}')"

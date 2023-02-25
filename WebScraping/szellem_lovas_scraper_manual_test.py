@@ -33,30 +33,38 @@ class SzellemLovasTest(unittest.TestCase):
     def test_board_game_data_can_be_collected_in_a_single_page(self):
         board_game = BoardGame("Spirit island", ["Spirit Island (angol) (Szellemek szigete)"])
         expected_price = "39808,- Ft"
+        expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=17976" \
+                       "&uj_termek=1"
 
         self.szellemLovasScraper.get_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
-        self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price)], board_game_data)
+        self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price, expected_url)], board_game_data)
 
     def test_board_game_data_can_be_collected_with_pagination_and_synonym(self):
         board_game = BoardGame("Ticket to Ride", ["Ticket to Ride", "Ticket to Ride: San Francisco (angol)"])
         expected_title = "Ticket to Ride: San Francisco (angol)"
         expected_price = "9844,- Ft"
+        expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25474" \
+                       "&uj_termek=1"
 
         self.szellemLovasScraper.get_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
-        self.assertEqual([BoardGameResult(expected_title, expected_price)], board_game_data)
+        self.assertEqual([BoardGameResult(expected_title, expected_price, expected_url)], board_game_data)
 
     def test_multiple_board_game_results_can_be_found(self):
         board_game = BoardGame("Szellemek szigete", ["Szellemek szigete"])
         expected_titles = ["Spirit Island (angol) (Szellemek szigete)",
                            "Spirit Island (Szellemek szigete) - Spirit Crate"]
         expected_prices = ["39808,- Ft", "18490,- Ft"]
+        expected_urls = ["https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=17976"
+                         "&uj_termek=1",
+                         "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25190"
+                         "&uj_termek=1"]
 
         self.szellemLovasScraper.get_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
-        self.assertEqual(board_game_data, [BoardGameResult(expected_titles[0], expected_prices[0]),
-                                           BoardGameResult(expected_titles[1], expected_prices[1])])
+        self.assertEqual(board_game_data, [BoardGameResult(expected_titles[0], expected_prices[0], expected_urls[0]),
+                                           BoardGameResult(expected_titles[1], expected_prices[1], expected_urls[1])])
 
     def tearDown(self):
         self.driver.close()
