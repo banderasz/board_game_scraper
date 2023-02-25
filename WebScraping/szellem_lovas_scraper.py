@@ -19,11 +19,15 @@ class SzellemLovasScraper:
                                   'and .//*[contains(text(), "{title}")] ' \
                                   'and not(.//*[contains(text(), "Bontott Társasjáték")])]'
 
-    PRICE_LOCATOR_OF_BOARD_GAME = './/div[contains(@class, "price")]'
+    PRICE_LOCATOR_OF_BOARD_GAME_BOX = './/div[contains(@class, "price")]'
 
-    TITLE_LOCATOR_OF_BOARD_GAME = './/div[contains(@class, "product-name")]'
+    TITLE_LOCATOR_OF_BOARD_GAME_BOX = './/div[contains(@class, "product-name")]'
 
-    URL_LOCATOR_OF_BOARD_GAME = TITLE_LOCATOR_OF_BOARD_GAME + '/a'
+    PRICE_LOCATOR_OF_BOARD_GAME_PAGE = '//div[contains(@class, "product-detail")]//div[contains(@class, "price")]'
+
+    TITLE_LOCATOR_OF_BOARD_GAME_PAGE = '//h1[contains(@class, "name")]'
+
+    URL_LOCATOR_OF_BOARD_GAME_BOX = TITLE_LOCATOR_OF_BOARD_GAME_BOX + '/a'
 
     NEXT_PAGE_LOCATOR = '//div[contains(@class, "pager")]' \
                         '//*[contains(@class, "next") and not (contains(@class, "next hidden"))]'
@@ -35,7 +39,7 @@ class SzellemLovasScraper:
     def __init__(self, driver: WebDriver):
         self.driver = driver
 
-    def get_base_url(self):
+    def load_base_url(self):
         self.driver.get(self.BASE_URL)
 
     def search_title(self, title: str):
@@ -43,10 +47,20 @@ class SzellemLovasScraper:
         search_bar.send_keys(title + Keys.ENTER)
 
     def get_board_game_results(self, board_game: BoardGame) -> List[BoardGameResult]:
+        portal_urls = [url for url in board_game.urls if url.startswith(self.BASE_URL)]
+        if len(portal_urls) == 1:
+            return [self.get_board_game_by_url(portal_urls[0])]
+
         found_board_games = self.__search_board_game_synonyms(board_game)
         if not found_board_games:
             raise BoardGameNotFoundError(f"{board_game} is not found")
         return found_board_games
+
+    def get_board_game_by_url(self, url: str) -> BoardGameResult:
+        self.driver.get(url)
+        title = self.driver.find_element(By.XPATH, SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME_PAGE).text
+        price = self.driver.find_element(By.XPATH, SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME_PAGE).text
+        return BoardGameResult(title, price, url)
 
     def __search_board_game_synonyms(self, board_game: BoardGame) -> List[BoardGameResult]:
         all_found_board_games = []
@@ -82,7 +96,7 @@ class SzellemLovasScraper:
 
     @staticmethod
     def __get_results_of_board_game_element(board_game: WebElement) -> BoardGameResult:
-        price = board_game.find_element(By.XPATH, SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME).text
-        title = board_game.find_element(By.XPATH, SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME).text
-        url = board_game.find_element(By.XPATH, SzellemLovasScraper.URL_LOCATOR_OF_BOARD_GAME).get_attribute("href")
+        price = board_game.find_element(By.XPATH, SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME_BOX).text
+        title = board_game.find_element(By.XPATH, SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME_BOX).text
+        url = board_game.find_element(By.XPATH, SzellemLovasScraper.URL_LOCATOR_OF_BOARD_GAME_BOX).get_attribute("href")
         return BoardGameResult(title, price, url)

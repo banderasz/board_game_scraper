@@ -2,15 +2,19 @@ from typing import Collection
 
 
 class BoardGame:
-    def __init__(self, title: str, synonyms: Collection[str] = tuple()):
+    def __init__(self, title: str, synonyms: Collection[str] = tuple(), urls: Collection[str] = tuple()):
         self.title = title
         self.synonyms = synonyms
+        self.urls = urls
 
     def __eq__(self, other: "BoardGame"):
-        return isinstance(other, BoardGame) and self.title == other.title and set(self.synonyms) == set(other.synonyms)
+        return isinstance(other, BoardGame) and \
+               self.title == other.title and \
+               set(self.synonyms) == set(other.synonyms) and \
+               set(self.urls) == set(other.urls)
 
     def __repr__(self):
-        return f"BoardGame(title='{self.title}', synonyms={self.synonyms})"
+        return f"BoardGame(title='{self.title}', synonyms={self.synonyms}, urls={self.urls})"
 
 
 class BoardGameResult:

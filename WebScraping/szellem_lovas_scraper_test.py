@@ -1,4 +1,5 @@
 import unittest
+from collections import defaultdict
 from typing import List, Dict
 from unittest.mock import Mock
 
@@ -25,14 +26,14 @@ class SzellemLovasTest(unittest.TestCase):
                           self.szellemLovasScraper.get_board_game_results, SzellemLovasTest.board_game)
 
     def test_board_game_data_can_be_found(self):
-        add_find_elements_side_effect_to_driver(self.driver, [[SzellemLovasTest.board_game_result]])
+        find_boardgames_in_pages_with_driver(self.driver, [[SzellemLovasTest.board_game_result]])
 
         self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_title, SzellemLovasTest.price,
                                           SzellemLovasTest.url)],
                          self.szellemLovasScraper.get_board_game_results(SzellemLovasTest.board_game))
 
     def test_board_game_data_can_be_found_on_later_page(self):
-        add_find_elements_side_effect_to_driver(self.driver, [[], [self.board_game_result]])
+        find_boardgames_in_pages_with_driver(self.driver, [[], [self.board_game_result]])
 
         self.assertEqual([BoardGameResult(SzellemLovasTest.board_game_title, SzellemLovasTest.price,
                                           SzellemLovasTest.url)],
@@ -43,12 +44,12 @@ class SzellemLovasTest(unittest.TestCase):
         titles = ["a", "b", "c", "d"]
         urls = ["w", "x", "y", "z"]
 
-        add_find_elements_side_effect_to_driver(self.driver, [[],
-                                                              [BoardGameResult(titles[0], prices[0], urls[0])],
-                                                              [],
-                                                              [BoardGameResult(titles[1], prices[1], urls[1])],
-                                                              [BoardGameResult(titles[2], prices[2], urls[2]),
-                                                               BoardGameResult(titles[3], prices[3], urls[3])]])
+        find_boardgames_in_pages_with_driver(self.driver, [[],
+                                                           [BoardGameResult(titles[0], prices[0], urls[0])],
+                                                           [],
+                                                           [BoardGameResult(titles[1], prices[1], urls[1])],
+                                                           [BoardGameResult(titles[2], prices[2], urls[2]),
+                                                            BoardGameResult(titles[3], prices[3], urls[3])]])
 
         expected_results = [BoardGameResult(title, price, url) for title, price, url in zip(titles, prices, urls)]
         self.assertCountEqual(expected_results,
@@ -63,10 +64,11 @@ class SzellemLovasTest(unittest.TestCase):
         prices = ["1", "2", "3", "4"]
         urls = ["w", "x", "y", "z"]
 
-        add_side_effect_to_driver(self.driver, {synonym_1: [[BoardGameResult(titles[0], prices[0], urls[0]),
-                                                             BoardGameResult(titles[1], prices[1], urls[1])]],
-                                                synonym_2: [[BoardGameResult(titles[2], prices[2], urls[2])],
-                                                            [BoardGameResult(titles[3], prices[3], urls[3])]]})
+        use_synonyms_and_url_with_driver(self.driver,
+                                         {synonym_1: [[BoardGameResult(titles[0], prices[0], urls[0]),
+                                                       BoardGameResult(titles[1], prices[1], urls[1])]],
+                                          synonym_2: [[BoardGameResult(titles[2], prices[2], urls[2])],
+                                                      [BoardGameResult(titles[3], prices[3], urls[3])]]})
 
         expected_results = [BoardGameResult(title, price, url) for title, price, url in zip(titles, prices, urls)]
         self.assertCountEqual(expected_results,
@@ -81,26 +83,49 @@ class SzellemLovasTest(unittest.TestCase):
         prices = ["1", "2", "3"]
         urls = ["x", "y", "z"]
 
-        add_side_effect_to_driver(self.driver, {synonym_1: [[BoardGameResult(titles[0], prices[0], urls[0]),
-                                                             BoardGameResult(titles[1], prices[1], urls[1])]],
-                                                synonym_2: [[BoardGameResult(titles[2], prices[2], urls[2])]]})
+        use_synonyms_and_url_with_driver(self.driver,
+                                         {synonym_1: [[BoardGameResult(titles[0], prices[0], urls[0]),
+                                                       BoardGameResult(titles[1], prices[1], urls[1])]],
+                                          synonym_2: [[BoardGameResult(titles[2], prices[2], urls[2])]]})
 
         self.assertCountEqual([BoardGameResult(titles[2], prices[2], urls[2])],
                               self.szellemLovasScraper.get_board_game_results(board_game))
 
+    def test_if_url_is_used_if_specified(self):
+        use_synonyms_and_url_with_driver(self.driver, board_game_with_url=self.board_game_result)
+        url = SzellemLovasScraper.BASE_URL + "/spirit_island"
 
-def add_side_effect_to_driver(driver: Mock, board_games_in_pages_by_synonym: Dict[str, List[List[BoardGameResult]]]):
-    search_bar_mock = Mock()
+        board_game = BoardGame(self.board_game_title, [self.board_game_synonym], [url])
+
+        self.assertEqual([BoardGameResult(self.board_game_title, self.price, url)],
+                         self.szellemLovasScraper.get_board_game_results(board_game))
+
+
+def use_synonyms_and_url_with_driver(driver: Mock,
+                                     board_games_by_synonym: Dict[str, List[List[BoardGameResult]]] = None,
+                                     board_game_with_url: BoardGameResult = None):
+    if board_games_by_synonym is None:
+        board_games_by_synonym = defaultdict(lambda: [[]])
+
+    def find_element_mock_method(*args):
+        mock_element = Mock()
+        if args[1].endswith(SzellemLovasScraper.SEARCH_LOCATOR):
+            mock_element.send_keys.side_effect = search_bar_send_keys_mock_method
+        elif args[1].endswith(SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME_PAGE):
+            mock_element.text = board_game_with_url.title
+        elif args[1].endswith(SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME_PAGE):
+            mock_element.text = board_game_with_url.price
+
+        return mock_element
 
     def search_bar_send_keys_mock_method(*args):
         search_term = args[0][:-1]
-        add_find_elements_side_effect_to_driver(driver, board_games_in_pages_by_synonym[search_term])
+        find_boardgames_in_pages_with_driver(driver, board_games_by_synonym[search_term])
 
-    driver.find_element.return_value = search_bar_mock
-    search_bar_mock.send_keys.side_effect = search_bar_send_keys_mock_method
+    driver.find_element.side_effect = find_element_mock_method
 
 
-def add_find_elements_side_effect_to_driver(driver: Mock, board_games_in_pages: List[List[BoardGameResult]]):
+def find_boardgames_in_pages_with_driver(driver: Mock, board_games_in_pages: List[List[BoardGameResult]]):
     def find_elements_mock_method(*args):
         if SzellemLovasScraper.NEXT_PAGE_LOCATOR in args[1]:
             return [Mock()] if board_games_in_pages else []
@@ -115,11 +140,11 @@ def build_board_game_mock(board_game: BoardGameResult):
 
     def find_element_mock_method(*args):
         attribute_element = Mock()
-        if args[1].endswith(SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME):
+        if args[1].endswith(SzellemLovasScraper.PRICE_LOCATOR_OF_BOARD_GAME_BOX):
             attribute_element.text = board_game.price
-        elif args[1].endswith(SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME):
+        elif args[1].endswith(SzellemLovasScraper.TITLE_LOCATOR_OF_BOARD_GAME_BOX):
             attribute_element.text = board_game.title
-        elif args[1].endswith(SzellemLovasScraper.URL_LOCATOR_OF_BOARD_GAME):
+        elif args[1].endswith(SzellemLovasScraper.URL_LOCATOR_OF_BOARD_GAME_BOX):
             attribute_element.get_attribute.return_value = board_game.url
         return attribute_element
 

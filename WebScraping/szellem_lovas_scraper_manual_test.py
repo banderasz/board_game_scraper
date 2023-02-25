@@ -19,14 +19,14 @@ class SzellemLovasTest(unittest.TestCase):
         self.szellemLovasScraper = SzellemLovasScraper(self.driver)
 
     def test_base_page_can_be_opened(self):
-        self.szellemLovasScraper.get_base_url()
+        self.szellemLovasScraper.load_base_url()
         self.assertEqual(self.driver.current_url, SzellemLovasScraper.BASE_URL)
 
     def test_title_can_be_searched(self):
         title = "Spirit island"
         search_result_xpath = f"//*[contains(text(), \"Keresés név alapján: '{title}'\")]"
 
-        self.szellemLovasScraper.get_base_url()
+        self.szellemLovasScraper.load_base_url()
         self.szellemLovasScraper.search_title(title)
         self.assertGreaterEqual(len(self.driver.find_elements(By.XPATH, search_result_xpath)), 1)
 
@@ -36,7 +36,7 @@ class SzellemLovasTest(unittest.TestCase):
         expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=17976" \
                        "&uj_termek=1"
 
-        self.szellemLovasScraper.get_base_url()
+        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price, expected_url)], board_game_data)
 
@@ -47,7 +47,7 @@ class SzellemLovasTest(unittest.TestCase):
         expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25474" \
                        "&uj_termek=1"
 
-        self.szellemLovasScraper.get_base_url()
+        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(expected_title, expected_price, expected_url)], board_game_data)
 
@@ -61,10 +61,23 @@ class SzellemLovasTest(unittest.TestCase):
                          "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25190"
                          "&uj_termek=1"]
 
-        self.szellemLovasScraper.get_base_url()
+        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
-        self.assertEqual(board_game_data, [BoardGameResult(expected_titles[0], expected_prices[0], expected_urls[0]),
-                                           BoardGameResult(expected_titles[1], expected_prices[1], expected_urls[1])])
+        self.assertEqual([BoardGameResult(expected_titles[0], expected_prices[0], expected_urls[0]),
+                          BoardGameResult(expected_titles[1], expected_prices[1], expected_urls[1])], board_game_data)
+
+    def test_board_game_can_be_found_using_url(self):
+        board_game = BoardGame("Szellemek szigete", ["Szellemek szigete"],
+                               ["https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id"
+                               "=17976&uj_termek=1"])
+
+        expected_board_game = [BoardGameResult("Spirit Island (angol) (Szellemek szigete) (Angol kiadás)", "39808,- Ft",
+                                               "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view"
+                                               "&termek_valtozat_id=17976&uj_termek=1")]
+
+        self.szellemLovasScraper.load_base_url()
+        board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
+        self.assertEqual(expected_board_game, board_game_data)
 
     def tearDown(self):
         self.driver.close()
