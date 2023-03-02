@@ -7,10 +7,11 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
 from Model.board_game import BoardGame, BoardGameResult
+from WebScraping.board_game_scraper import BoardGameScraper
 from WebScraping.error import BoardGameNotFoundError
 
 
-class SzellemLovasScraper:
+class SzellemLovasScraper(BoardGameScraper):
     BASE_URL = "https://www.szellemlovas.hu/"
 
     SEARCH_LOCATOR = 'header_kereses_mezo'
@@ -37,7 +38,7 @@ class SzellemLovasScraper:
     PAGE_LIMIT = 5
 
     def __init__(self, driver: WebDriver):
-        self.driver = driver
+        super().__init__(driver)
 
     def load_base_url(self):
         self.driver.get(self.BASE_URL)
@@ -51,6 +52,7 @@ class SzellemLovasScraper:
         if len(portal_urls) == 1:
             return [self.get_board_game_by_url(portal_urls[0])]
 
+        self.load_base_url()
         found_board_games = self.__search_board_game_synonyms(board_game)
         if not found_board_games:
             raise BoardGameNotFoundError(f"{board_game} is not found")

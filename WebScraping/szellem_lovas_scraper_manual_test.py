@@ -36,7 +36,6 @@ class SzellemLovasTest(unittest.TestCase):
         expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=17976" \
                        "&uj_termek=1"
 
-        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(board_game.synonyms[0], expected_price, expected_url)], board_game_data)
 
@@ -47,7 +46,6 @@ class SzellemLovasTest(unittest.TestCase):
         expected_url = "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25474" \
                        "&uj_termek=1"
 
-        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(expected_title, expected_price, expected_url)], board_game_data)
 
@@ -61,7 +59,6 @@ class SzellemLovasTest(unittest.TestCase):
                          "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view&termek_valtozat_id=25190"
                          "&uj_termek=1"]
 
-        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual([BoardGameResult(expected_titles[0], expected_prices[0], expected_urls[0]),
                           BoardGameResult(expected_titles[1], expected_prices[1], expected_urls[1])], board_game_data)
@@ -75,7 +72,6 @@ class SzellemLovasTest(unittest.TestCase):
                                                "https://www.szellemlovas.hu/index.php?r=webboltTermekValtozat/view"
                                                "&termek_valtozat_id=17976&uj_termek=1")]
 
-        self.szellemLovasScraper.load_base_url()
         board_game_data = self.szellemLovasScraper.get_board_game_results(board_game)
         self.assertEqual(expected_board_game, board_game_data)
 
