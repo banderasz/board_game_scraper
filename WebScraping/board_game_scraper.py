@@ -7,9 +7,13 @@ from Model.board_game import BoardGame, BoardGameResult
 
 
 class BoardGameScraper(ABC):
+
     def __init__(self, driver: WebDriver):
         self.driver = driver
 
     @abstractmethod
     def get_board_game_results(self, board_game: BoardGame) -> List[BoardGameResult]:
         pass
+
+    def __str__(self):
+        return f"{self.__qualname__}"
