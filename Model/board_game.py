@@ -3,9 +3,13 @@ from typing import Collection
 
 class BoardGame:
     def __init__(self, title: str, synonyms: Collection[str] = tuple(), urls: Collection[str] = tuple()):
-        self.title = title
+        self.__title = title
         self.synonyms = synonyms
         self.urls = urls
+
+    @property
+    def title(self):
+        return self.__title
 
     def __eq__(self, other: "BoardGame"):
         return isinstance(other, BoardGame) and \
@@ -15,6 +19,9 @@ class BoardGame:
 
     def __repr__(self):
         return f"BoardGame(title='{self.title}', synonyms={self.synonyms}, urls={self.urls})"
+
+    def __hash__(self):
+        return hash(self.title)
 
 
 class BoardGameResult:
