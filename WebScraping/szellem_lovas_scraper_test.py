@@ -93,7 +93,7 @@ class SzellemLovasTest(unittest.TestCase):
 
     def test_if_url_is_used_if_specified(self):
         use_synonyms_and_url_with_driver(self.driver, board_game_with_url=self.board_game_result)
-        url = SzellemLovasScraper.BASE_URL + "/spirit_island"
+        url = SzellemLovasScraper.base_url() + "/spirit_island"
 
         board_game = BoardGame(self.board_game_title, [self.board_game_synonym], [url])
 

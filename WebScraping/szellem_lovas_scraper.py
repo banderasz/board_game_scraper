@@ -12,8 +12,6 @@ from WebScraping.error import BoardGameNotFoundError
 
 
 class SzellemLovasScraper(BoardGameScraper):
-    BASE_URL = "https://www.szellemlovas.hu/"
-
     SEARCH_LOCATOR = 'header_kereses_mezo'
 
     BOARD_GAME_LOCATOR_BY_TITLE = '//div[contains(@class, "box-content") ' \
@@ -40,15 +38,19 @@ class SzellemLovasScraper(BoardGameScraper):
     def __init__(self, driver: WebDriver):
         super().__init__(driver)
 
+    @staticmethod
+    def base_url() -> str:
+        return 'https://www.szellemlovas.hu/'
+
     def load_base_url(self):
-        self.driver.get(self.BASE_URL)
+        self.driver.get(self.base_url())
 
     def search_title(self, title: str):
         search_bar = self.driver.find_element(By.ID, SzellemLovasScraper.SEARCH_LOCATOR)
         search_bar.send_keys(title + Keys.ENTER)
 
     def get_board_game_results(self, board_game: BoardGame) -> List[BoardGameResult]:
-        portal_urls = [url for url in board_game.urls if url.startswith(self.BASE_URL)]
+        portal_urls = [url for url in board_game.urls if url.startswith(self.base_url())]
         if len(portal_urls) == 1:
             return [self.get_board_game_by_url(portal_urls[0])]
 

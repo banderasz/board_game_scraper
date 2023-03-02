@@ -20,7 +20,7 @@ class SzellemLovasTest(unittest.TestCase):
 
     def test_base_page_can_be_opened(self):
         self.szellemLovasScraper.load_base_url()
-        self.assertEqual(self.driver.current_url, SzellemLovasScraper.BASE_URL)
+        self.assertEqual(self.driver.current_url, SzellemLovasScraper.base_url())
 
     def test_title_can_be_searched(self):
         title = "Spirit island"
